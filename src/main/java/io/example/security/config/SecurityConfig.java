@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -125,6 +126,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .sessionFixation().migrateSession()     // 인증 요청 시 이전 세션 정보를 이용하여 신규 세션 발급 (servlet 3.1 이하)
 //                .sessionFixation().none()               // 인증 요청 시 신규 session을 발급 하지 않음
 //                .sessionFixation().newSession()         // 인증 요청 시 이전 세션정보의 속성을 참조 하지 않는 새로운 세션 발급
+        ;
+
+        http.sessionManagement()
+//                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)        // Spring Security가 항상 세션 생성
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)   // Spring Security가 필요 시 생성 (기본값)
+//                .sessionCreationPolicy(SessionCreationPolicy.NEVER)         // Spring Security가 생성하지 않지만 이미 존재하면 사용
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)     // Spring Security가 생성하지 않고 존재해도 사용하지 않음
         ;
     }
 }
