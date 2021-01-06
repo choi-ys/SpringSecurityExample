@@ -39,12 +39,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        /* HttpSecurity 재 정의를 통한 인가 정책 설정 */
+        /* HttpSecurity.authorizeRequests() 재 정의를 통한 인가 정책 설정 */
         http.authorizeRequests()
                 .anyRequest().authenticated()
         ;
 
-        /* HttpSecurity 재 정의를 통한 로그인 정책 설정 */
+        /* HttpSecurity.formLogin() 재 정의를 통한 로그인 정책 설정 */
         http.formLogin()
 //                .loginPage("/custom_login")                 // 로그인 페이지 경로 설정
                 .defaultSuccessUrl("/api/index")            // 로그인 성공 시 화면 이동 경로 설정
@@ -58,8 +58,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     public void onAuthenticationSuccess(HttpServletRequest httpServletRequest
                             , HttpServletResponse httpServletResponse
                             , Authentication authentication) throws IOException, ServletException {
-                            log.info(authentication.getName());   // 로그인 요청 사용자에 대한 정보 접근 가능
-                            httpServletResponse.sendRedirect("/api/index"); // 로그인 성공 이후 response 객체 접근 가능
+                        log.info(authentication.getName());   // 로그인 요청 사용자에 대한 정보 접근 가능
+                        httpServletResponse.sendRedirect("/api/index"); // 로그인 성공 이후 response 객체 접근 가능
                     }
                 })
                 // 로그인 실패 시 Handler를 통한 추가 처리 설정
@@ -80,7 +80,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
         ;
 
-        /* HttpSecurity 재 정의를 통한 로그아웃 정책 설정 */
+        /* HttpSecurity.logout() 재 정의를 통한 로그아웃 정책 설정 */
         http.logout()
                 .logoutUrl("/logout")                       // 로그아웃 처리 경로 설정 -> 기본 설정은 'POST 요청'
                 .logoutSuccessUrl("/login")                 // 로그아웃 성공 시 화면 이동 경로 설정
@@ -103,12 +103,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 })
         ;
 
-        /* HttpSecurity 재 정의를 통한 remember-me 정책 설정 */
+        /* HttpSecurity.rememberMe() 재 정의를 통한 remember-me 정책 설정 */
         http.rememberMe()
                 .rememberMeParameter("remember-me")     // 로그인 폼 요청 시 기본값으로 설정된 remember-me에 해당하는 파라미터 명 설정
                 .tokenValiditySeconds(3600)             // 쿠키 만료 기간 default : 14일, 단위 = 초
 //                .alwaysRemember(false)                  // remember-me 기능 항상 실행 여부
                 .userDetailsService(userDetailsService) // remember-me 기능 수행 시 사용자 정보 조회를 위한 service 설정
         ;
+
+        /* HttpSecurity.sessionManagement() 재 정의를 통한 동시 세션 제어 정책 설정 */
+        http.sessionManagement()
+                .invalidSessionUrl("/login")        // 유요하지 못한 세션인 경우 이동 화면 경로
+                .maximumSessions(1)                 // 최대 허용 가능 세션 수, -1 : 무제한 로그인 세션 허용
+                .maxSessionsPreventsLogin(false)    // 동시 로그인 차단 설정, false : 기존 세션 만료(default)
+                .expiredUrl("/login")               // 세션 만료 시 이동 화면 경로
+        ;
     }
 }
+
