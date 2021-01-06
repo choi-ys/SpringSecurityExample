@@ -118,6 +118,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .maxSessionsPreventsLogin(false)    // 동시 로그인 차단 설정, false : 기존 세션 만료(default)
                 .expiredUrl("/login")               // 세션 만료 시 이동 화면 경로
         ;
+
+        /* HttpSecurity.sessionManagement() 재 정의를 통한 세션 고정 보호 정책 설정 */
+        http.sessionManagement()
+                .sessionFixation().changeSessionId()    // 인증 요청 시 이전 세션 정보를 이용하여 신규 세션 발급 (servlet 3.1 이상) -> 기본값
+//                .sessionFixation().migrateSession()     // 인증 요청 시 이전 세션 정보를 이용하여 신규 세션 발급 (servlet 3.1 이하)
+//                .sessionFixation().none()               // 인증 요청 시 신규 session을 발급 하지 않음
+//                .sessionFixation().newSession()         // 인증 요청 시 이전 세션정보의 속성을 참조 하지 않는 새로운 세션 발급
+        ;
     }
 }
 
