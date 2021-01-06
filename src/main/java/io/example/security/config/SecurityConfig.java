@@ -1,12 +1,14 @@
 package io.example.security.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
@@ -28,6 +30,9 @@ import java.io.IOException;
 @Slf4j
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Autowired
+    UserDetailsService userDetailsService;
+
     /** 용석 : 2021-01-03
      * configure(HttpSecurity http) 재 정의를 통해 시스템에 필요한 사용자 정의 인가/인증 정책을 설정
      * - HttpSecurity : 인가/인증 설정 관련 기능 제공
@@ -39,7 +44,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
         ;
 
-        /* HttpSecurity 재 정의를 통한 인증 정책 설정 */
+        /* HttpSecurity 재 정의를 통한 로그인 정책 설정 */
         http.formLogin()
 //                .loginPage("/custom_login")                 // 로그인 페이지 경로 설정
                 .defaultSuccessUrl("/api/index")            // 로그인 성공 시 화면 이동 경로 설정
@@ -75,6 +80,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
         ;
 
+        /* HttpSecurity 재 정의를 통한 로그아웃 정책 설정 */
         http.logout()
                 .logoutUrl("/logout")                       // 로그아웃 처리 경로 설정 -> 기본 설정은 'POST 요청'
                 .logoutSuccessUrl("/login")                 // 로그아웃 성공 시 화면 이동 경로 설정
@@ -95,6 +101,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         httpServletResponse.sendRedirect("/login");
                     }
                 })
+        ;
+
+        /* HttpSecurity 재 정의를 통한 remember-me 정책 설정 */
+        http.rememberMe()
+                .rememberMeParameter("remember-me")     // 로그인 폼 요청 시 기본값으로 설정된 remember-me에 해당하는 파라미터 명 설정
+                .tokenValiditySeconds(3600)             // 쿠키 만료 기간 default : 14일, 단위 = 초
+//                .alwaysRemember(false)                  // remember-me 기능 항상 실행 여부
+                .userDetailsService(userDetailsService) // remember-me 기능 수행 시 사용자 정보 조회를 위한 service 설정
         ;
     }
 }
