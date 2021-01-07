@@ -3,6 +3,7 @@ package io.example.security.config;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -40,9 +41,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
         /* HttpSecurity.authorizeRequests() 재 정의를 통한 인가 정책 설정 */
-        http.authorizeRequests()
-                .anyRequest().authenticated()
+        http.authorizeRequests()    // 요청에 대한 권한을 지정
+//                .antMatchers("/api/**").permitAll()             // 무조건 접근을 허용
+//                .antMatchers("/api/**").fullyAuthenticated()    // formLogin인증 방식만 허용, rememberMe 인증 제외
+//                .antMatchers("/api/**").denyAll()               // 무조건 접근을 허용하지 않음
+//                .antMatchers("/api/**").anonymous()             // 인증된 사용자(Role->User)는 접근이 가능하지 않고 오로지 익명 사용자만 접근 가능
+//                .antMatchers("/api/**").rememberMe()            // remember-me를 통해 인증된 사용자의 접근을 허용
+//                .antMatchers("/api/**").hasRole()               // 특정 권한을 가지는 사용자의 접근을 허용
+//                .antMatchers("/api/**").hasAuthority()          // 특정 권한을 가지는 사용자의 접근을 허용
+//                .antMatchers("/api/**").hasAnyRole()            // 사용자에게 주어진 권한 중 명시된 권한을 가진 접근을 허용
+//                .antMatchers("/api/**").hasAnyAuthority()       // 사용자에게 주어진 권한 중 명시된 권한을 가진 접근을 허용
+//                .antMatchers("/api/**").hasIpAddress()          // 특정 IP의 요청에 대해서만 접근을 허용
+
+                /* 인가 설정 실습을 위한 인가 정책 설정 */
+                .antMatchers("/user").hasRole("USER")           // "USER" Role을 소유하고 있는 사용자인 경우 접근을 허용
+                .antMatchers("/admin/pay").hasRole("SHOP_ADMIN")
+                .antMatchers("/admin/**").access("hasRole('SHOP_ADMIN') or hasRole('SYS_ADMIN')")
+                .anyRequest().authenticated()   //모든 요청에 대해서 인증된 사용의 접근을 허용
         ;
 
         /* HttpSecurity.formLogin() 재 정의를 통한 로그인 정책 설정 */
@@ -134,6 +151,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .sessionCreationPolicy(SessionCreationPolicy.NEVER)         // Spring Security가 생성하지 않지만 이미 존재하면 사용
 //                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)     // Spring Security가 생성하지 않고 존재해도 사용하지 않음
         ;
+    }
+
+    /** 사용자를 생성하고 권한을 생성 */
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        //메모리 방식으로 사용자를 생성하고 권한 부여 가능
+        auth.inMemoryAuthentication().withUser("user").password("{noop}1111").roles("USER");
+        auth.inMemoryAuthentication().withUser("shop_admin").password("{noop}1111").roles("SHOP_ADMIN");
+        auth.inMemoryAuthentication().withUser("sys_admin").password("{noop}1111").roles("SYS_ADMIN");
     }
 }
 
